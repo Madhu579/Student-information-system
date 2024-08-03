@@ -1,0 +1,299 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.sql.*;
+
+public class StudentInformationSystemGUI extends JFrame {
+    private static final String URL = "jdbc:mysql://localhost:3306/student_db";
+    private static final String USER = "root";
+    private static final String PASSWORD = "M@2003bnmm#"; 
+
+    private JTextField regNoField;
+    private JTextField nameField;
+    private JTextField ageField;
+    private JTextField courseField;
+    private JTextField searchField;
+    private JTable studentTable;
+    private DefaultTableModel tableModel;
+
+    public StudentInformationSystemGUI() {
+        setTitle("Student Information System");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBorder(BorderFactory.createTitledBorder("Student Details"));
+        GridBagConstraints formConstraints = new GridBagConstraints();
+        formConstraints.fill = GridBagConstraints.HORIZONTAL;
+        formConstraints.insets = new Insets(5, 5, 5, 5);
+        formConstraints.gridy = 0;
+        formConstraints.gridx = 0;
+        
+        formPanel.add(new JLabel("Registration No:"), formConstraints);
+        regNoField = new JTextField(20);
+        formConstraints.gridx = 1;
+        formPanel.add(regNoField, formConstraints);
+        
+        formConstraints.gridy++;
+        formConstraints.gridx = 0;
+        formPanel.add(new JLabel("Name:"), formConstraints);
+        nameField = new JTextField(20);
+        formConstraints.gridx = 1;
+        formPanel.add(nameField, formConstraints);
+        
+        formConstraints.gridy++;
+        formConstraints.gridx = 0;
+        formPanel.add(new JLabel("Age:"), formConstraints);
+        ageField = new JTextField(20);
+        formConstraints.gridx = 1;
+        formPanel.add(ageField, formConstraints);
+        
+        formConstraints.gridy++;
+        formConstraints.gridx = 0;
+        formPanel.add(new JLabel("Course:"), formConstraints);
+        courseField = new JTextField(20);
+        formConstraints.gridx = 1;
+        formPanel.add(courseField, formConstraints);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        add(formPanel, gbc);
+        
+        JPanel buttonsPanel = new JPanel(new GridLayout(1, 4, 10, 10));
+        JButton addButton = new JButton("Add Student");
+        JButton deleteButton = new JButton("Delete Student");
+        JButton updateButton = new JButton("Update Student");
+        JButton resetButton = new JButton("Reset");
+        
+        addButton.setPreferredSize(new Dimension(150, 40));
+        deleteButton.setPreferredSize(new Dimension(150, 40));
+        updateButton.setPreferredSize(new Dimension(150, 40));
+        resetButton.setPreferredSize(new Dimension(150, 40));
+        
+        buttonsPanel.add(addButton);
+        buttonsPanel.add(deleteButton);
+        buttonsPanel.add(updateButton);
+        buttonsPanel.add(resetButton);
+        
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        add(buttonsPanel, gbc);
+        
+        JPanel searchPanel = new JPanel(new GridBagLayout());
+        searchPanel.setBorder(BorderFactory.createTitledBorder("Search"));
+        GridBagConstraints searchConstraints = new GridBagConstraints();
+        searchConstraints.fill = GridBagConstraints.HORIZONTAL;
+        searchConstraints.insets = new Insets(5, 5, 5, 5);
+        searchConstraints.gridy = 0;
+        searchConstraints.gridx = 0;
+        
+        searchPanel.add(new JLabel("Search by Registration No:"), searchConstraints);
+        searchField = new JTextField(20);
+        searchConstraints.gridx = 1;
+        searchPanel.add(searchField, searchConstraints);
+        
+        JButton searchButton = new JButton("Search");
+        
+        searchConstraints.gridy++;
+        searchConstraints.gridx = 0;
+        searchPanel.add(searchButton, searchConstraints);
+        
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        add(searchPanel, gbc);
+        
+        tableModel = new DefaultTableModel(new String[]{"Registration No", "Name", "Age", "Course"}, 0);
+        studentTable = new JTable(tableModel);
+        studentTable.setFillsViewportHeight(true);
+        JScrollPane tableScrollPane = new JScrollPane(studentTable);
+        tableScrollPane.setBorder(BorderFactory.createTitledBorder("Student Information"));
+        
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        add(tableScrollPane, gbc);
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addStudent();
+            }
+        });
+
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteStudent();
+            }
+        });
+
+        updateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateStudent();
+            }
+        });
+
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                searchStudent();
+            }
+        });
+
+        resetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetFields();
+            }
+        });
+
+       
+        studentTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = studentTable.rowAtPoint(e.getPoint());
+                if (row >= 0) {
+                    regNoField.setText(tableModel.getValueAt(row, 0).toString());
+                    nameField.setText(tableModel.getValueAt(row, 1).toString());
+                    ageField.setText(tableModel.getValueAt(row, 2).toString());
+                    courseField.setText(tableModel.getValueAt(row, 3).toString());
+                }
+            }
+        });
+
+        
+        updateTable();
+    }
+
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    private void addStudent() {
+        String regNo = regNoField.getText();
+        String name = nameField.getText();
+        int age = Integer.parseInt(ageField.getText());
+        String course = courseField.getText();
+        
+        String query = "INSERT INTO students (registration_no, name, age, course) VALUES (?, ?, ?, ?)";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, regNo);
+            pstmt.setString(2, name);
+            pstmt.setInt(3, age);
+            pstmt.setString(4, course);
+            pstmt.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Student added successfully.");
+            updateTable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error adding student: " + e.getMessage());
+        }
+    }
+
+    private void deleteStudent() {
+        String regNo = regNoField.getText();
+        
+        String query = "DELETE FROM students WHERE registration_no = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, regNo);
+            pstmt.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Student deleted successfully.");
+            updateTable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error deleting student: " + e.getMessage());
+        }
+    }
+
+    private void updateStudent() {
+        String regNo = regNoField.getText();
+        String name = nameField.getText();
+        int age = Integer.parseInt(ageField.getText());
+        String course = courseField.getText();
+        
+        String query = "UPDATE students SET name = ?, age = ?, course = ? WHERE registration_no = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, name);
+            pstmt.setInt(2, age);
+            pstmt.setString(3, course);
+            pstmt.setString(4, regNo);
+            pstmt.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Student updated successfully.");
+            updateTable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error updating student: " + e.getMessage());
+        }
+    }
+
+    private void searchStudent() {
+        String regNo = searchField.getText();
+        String query = "SELECT * FROM students WHERE registration_no = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, regNo);
+            ResultSet rs = pstmt.executeQuery();
+           
+            tableModel.setRowCount(0);
+
+            if (rs.next()) {
+                String name = rs.getString("name");
+                int age = rs.getInt("age");
+                String course = rs.getString("course");
+                tableModel.addRow(new Object[]{regNo, name, age, course});
+            } else {
+                JOptionPane.showMessageDialog(this, "No student found with the given registration number.");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error searching student: " + e.getMessage());
+        }
+    }
+
+    private void updateTable() {
+        String query = "SELECT * FROM students";
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
+           
+            tableModel.setRowCount(0);
+
+            while (rs.next()) {
+                String regNo = rs.getString("registration_no");
+                String name = rs.getString("name");
+                int age = rs.getInt("age");
+                String course = rs.getString("course");
+                tableModel.addRow(new Object[]{regNo, name, age, course});
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error displaying students: " + e.getMessage());
+        }
+    }
+
+    private void resetFields() {
+        regNoField.setText("");
+        nameField.setText("");
+        ageField.setText("");
+        courseField.setText("");
+        searchField.setText("");
+        updateTable();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            StudentInformationSystemGUI frame = new StudentInformationSystemGUI();
+            frame.setVisible(true);
+        });
+    }
+}
