@@ -4,6 +4,10 @@
 
 ![image](https://github.com/user-attachments/assets/b5e9444a-c51d-48db-a495-2d7455fffcc2)
 
+INSERT
+![image](https://github.com/user-attachments/assets/498572a0-f589-4e84-9a94-1721c3045f1a)
+
+
 DELETE 
 
 ![image](https://github.com/user-attachments/assets/94f5c976-4cdf-4f25-80a0-f4fcbed0c104)
